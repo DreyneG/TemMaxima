@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DotNet.Scaffolding.Shared.Project;
 using Microsoft.IdentityModel.Tokens;
-namespace apisaude.Controllers;
+namespace API_TEMPERATURA_MAXIMA.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class UserAdmController : ControllerBase
@@ -26,22 +26,24 @@ public class UserAdmController : ControllerBase
         _configuration = configuration;
         _context = context;
     }
-    [HttpGet]
-    public ActionResult<string> Get()
-    {
-        return " << Controlador UserLoginController :: WebApiUsuarios >>";
-    }
     [HttpPost("Criar")]
     public async Task<ActionResult<UserToken>> CreateUser([FromBody]
 UserInfo model)
     {
+        var funcionario = _context.Funcionarios.FirstOrDefault(e => e.email
+        == model.email && e.cpf == model.cpf);
+
+        if (funcionario != null)
+        {
+            model.IdFuncionario = funcionario.IdFuncionario;
+        }
             var user = new ApplicationUser
             {
                 UserName = model.email,
                 Email = model.email,
                 Cpf = model.cpf
             };
-            var result = await _userManager.CreateAsync(user,model.password);
+            var result = await _userManager.CreateAsync(user, model.password);
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "Admin");
@@ -52,18 +54,16 @@ UserInfo model)
             {
                 return BadRequest("Usuário ou senha inválidos");
             }
-  
-    }
+
+        }
     private UserToken BuildToken(UserInfo userInfo, IList<string>
     userRoles)
     {
         var claims = new List<Claim>
 {
-new Claim(JwtRegisteredClaimNames.UniqueName,
-userInfo.email),
+new Claim(JwtRegisteredClaimNames.UniqueName,userInfo.email),
 new Claim("meuValor", "oque voce quiser"),
-new Claim(JwtRegisteredClaimNames.Jti,
-Guid.NewGuid().ToString())
+new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
 };
         foreach (var userRole in userRoles)
         {

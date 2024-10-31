@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DotNet.Scaffolding.Shared.Project;
 using Microsoft.IdentityModel.Tokens;
-namespace apisaude.Controllers;
+namespace API_TEMPERATURA_MAXIMA.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class UserLoginController : ControllerBase
@@ -17,35 +17,36 @@ public class UserLoginController : ControllerBase
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
     private readonly AppDbContext _context;
-    private readonly RoleManager<ApplicationUser> _roleManeger;
+    // private readonly RoleManager<IdentityRole> _roleManeger;
     public UserLoginController(UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    IConfiguration configuration, AppDbContext context)
+    IConfiguration configuration, AppDbContext context, RoleManager<IdentityRole> roleManager)
     {
+        // _roleManeger = roleManager;
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
         _context = context;
     }
-    [HttpGet]
-    public ActionResult<string> Get()
-    {
-        return " << Controlador UserLoginController :: WebApiUsuarios >>";
-    }
     [HttpPost("Criar")]
     public async Task<ActionResult<UserToken>> CreateUser([FromBody]
-UserInfo model)
+UserInfo model) 
     {
         var funcionarioCad = _context.Funcionarios.FirstOrDefault(e => e.email
         == model.email && e.cpf == model.cpf);
         if (funcionarioCad != null)
         {
+            model.IdFuncionario = funcionarioCad.IdFuncionario;
+
            
             var user = new ApplicationUser
             {
+              
                 UserName = model.email,
                 Email = model.email,
-                Cpf = model.cpf
+                Cpf = model.cpf,
+                
+                
             };
             var result = await _userManager.CreateAsync(user,model.password);
             if (result.Succeeded)
@@ -66,7 +67,7 @@ UserInfo model)
     public async Task<ActionResult<String>> CheckUser(String Cpf, string
     Email)
     {
-        var pacienteCad = _context.Funcionarios.FirstOrDefault(e => e.email
+        var FuncionarioCad = _context.Funcionarios.FirstOrDefault(e => e.email
         == Email && e.cpf == Cpf);
         var userExiste = _context.Users.FirstOrDefault(u => u.Email ==
         Email && u.Cpf == Cpf);
@@ -74,7 +75,7 @@ UserInfo model)
         { return BadRequest("Usuario já cadastrado"); }
         else
         {
-            if (pacienteCad != null)
+            if (FuncionarioCad != null)
             {
                 return "OK";
             }
@@ -107,11 +108,11 @@ UserInfo model)
     {
         var claims = new List<Claim>
 {
-new Claim(JwtRegisteredClaimNames.UniqueName,
-userInfo.email),
+new Claim(JwtRegisteredClaimNames.UniqueName,userInfo.email),
 new Claim("meuValor", "oque voce quiser"),
-new Claim(JwtRegisteredClaimNames.Jti,
-Guid.NewGuid().ToString())
+new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
+new Claim(ClaimTypes.NameIdentifier, userInfo.IdFuncionario.ToString())
+
 };
         foreach (var userRole in userRoles)
         {

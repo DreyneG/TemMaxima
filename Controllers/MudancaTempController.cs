@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using API_TEMPERATURA_MAXIMA.Context;
 using API_TEMPERATURA_MAXIMA.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace API_TEMPERATURA_MAXIMA.Controllers
 {
@@ -21,17 +22,23 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
         {
             _context = context;
         }
+           private int GetIdFuncionario()
+        {
+            // Recupera o IdFuncionario das claims do usuário autenticado
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        }
 
         // GET: api/MudancaTemp
         [HttpGet]
-        [Authorize]
+        [Authorize("Master")]
         public async Task<ActionResult<IEnumerable<MudancaTemp>>> GetMudancaTemps()
         {
-          if (_context.MudancaTemps == null)
-          {
-              return NotFound();
-          }
-            return await _context.MudancaTemps.ToListAsync();
+            if (_context.MudancaTemps == null)
+            {
+                return NotFound();
+            }
+            var mudancas = await _context.MudancaTemps.Where(mt => VerificarAcesso(GetIdFuncionario(), mt.IdAmbiente)).ToListAsync();
+            return mudancas;
         }
 
         // GET: api/MudancaTemp/5
@@ -39,15 +46,15 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
         [Authorize]
         public async Task<ActionResult<MudancaTemp>> GetMudancaTemp(int id)
         {
-          if (_context.MudancaTemps == null)
-          {
-              return NotFound();
-          }
-            var mudancaTemp = await _context.MudancaTemps.FindAsync(id);
-
-            if (mudancaTemp == null)
+            if (_context.MudancaTemps == null)
             {
                 return NotFound();
+            }
+            var mudancaTemp = await _context.MudancaTemps.FindAsync(id);
+
+            if (mudancaTemp == null || !VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
+            {
+                return Forbid();
             }
 
             return mudancaTemp;
@@ -59,9 +66,14 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
         [Authorize]
         public async Task<IActionResult> PutMudancaTemp(int id, MudancaTemp mudancaTemp)
         {
+            
             if (id != mudancaTemp.IdMudancaTemp)
             {
                 return BadRequest();
+            }
+            if (!VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
+            {
+                return Forbid();
             }
 
             _context.Entry(mudancaTemp).State = EntityState.Modified;
@@ -91,10 +103,14 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
         [Authorize]
         public async Task<ActionResult<MudancaTemp>> PostMudancaTemp(MudancaTemp mudancaTemp)
         {
-          if (_context.MudancaTemps == null)
-          {
-              return Problem("Entity set 'AppDbContext.MudancaTemps'  is null.");
-          }
+            if (_context.MudancaTemps == null)
+            {
+                return Problem("Entity set 'AppDbContext.MudancaTemps'  is null.");
+            }
+            if (!VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
+            {
+                return Forbid();
+            }
             _context.MudancaTemps.Add(mudancaTemp);
             await _context.SaveChangesAsync();
 
@@ -110,7 +126,12 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             {
                 return NotFound();
             }
+
             var mudancaTemp = await _context.MudancaTemps.FindAsync(id);
+            if (!VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
+            {
+                return Forbid();
+            }
             if (mudancaTemp == null)
             {
                 return NotFound();
@@ -126,5 +147,11 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
         {
             return (_context.MudancaTemps?.Any(e => e.IdMudancaTemp == id)).GetValueOrDefault();
         }
+        private bool VerificarAcesso(int idFuncionario, int idAmbiente)
+        {
+            // Verificar se o funcionário tem acesso ao ambiente utilizando o contexto central
+            return _context.UsuarioAmbientes.Any(fa => fa.IdFuncionario == idFuncionario && fa.IdAmbiente == idAmbiente);
+        }
+     
     }
 }
