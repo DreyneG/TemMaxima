@@ -11489,11 +11489,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Aluno Dev\\Desktop\\API TEMPERATURA_MAXIMA\\API TEMPERATURA_MAXIMA.csproj",
+      "projectUniqueName": "C:\\Users\\Aluno Dev\\Documents\\Dev\\TCC\\TemMaxima\\API TEMPERATURA_MAXIMA.csproj",
       "projectName": "API TEMPERATURA_MAXIMA",
-      "projectPath": "C:\\Users\\Aluno Dev\\Desktop\\API TEMPERATURA_MAXIMA\\API TEMPERATURA_MAXIMA.csproj",
+      "projectPath": "C:\\Users\\Aluno Dev\\Documents\\Dev\\TCC\\TemMaxima\\API TEMPERATURA_MAXIMA.csproj",
       "packagesPath": "C:\\Users\\Aluno Dev\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Aluno Dev\\Desktop\\API TEMPERATURA_MAXIMA\\obj\\",
+      "outputPath": "C:\\Users\\Aluno Dev\\Documents\\Dev\\TCC\\TemMaxima\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Aluno Dev\\AppData\\Roaming\\NuGet\\NuGet.Config"

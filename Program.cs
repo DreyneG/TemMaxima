@@ -39,7 +39,7 @@ builder.Services.AddSwaggerGen(options =>
 
 });
 builder.Services.AddDbContext<AppDbContext>(options => options.
-UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+UseNpgsql(builder.Configuration.GetConnectionString("azure")));
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
@@ -88,6 +88,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseCors(MyAllowSpecificOrigins);

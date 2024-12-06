@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using API_TEMPERATURA_MAXIMA.Context;
 using API_TEMPERATURA_MAXIMA.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace API_TEMPERATURA_MAXIMA.Controllers
 {
@@ -23,6 +24,18 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// retorna os ambientes registrados no banco de dados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idAmbiente": 0,
+        ///    "nomeAmbiente": "string"
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+    
+
         // GET: api/Ambiente
         [HttpGet]
         [Authorize]
@@ -33,7 +46,20 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
               return NotFound();
           }
             return await _context.Ambientes.ToListAsync();
+            
         }
+
+        /// <summary>
+        /// retorna um ambiente registrado no banco de dados em relação ao id inserido
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idAmbiente": 0,
+        ///    "nomeAmbiente": "string"
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
 
         // GET: api/Ambiente/5
         [HttpGet("{id}")]
@@ -54,6 +80,18 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
 
             return ambiente;
         }
+
+        /// <summary>
+        /// faz update de um ambiente em relação ao id
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idAmbiente": 0,
+        ///    "nomeAmbiente": "string"
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no update dos dados</response>
+
 
         // PUT: api/Ambiente/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -87,6 +125,17 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// insere um novo ambiente no banco de dados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idAmbiente": 0,
+        ///    "nomeAmbiente": "string"
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no upload dos dados</response>
+
         // POST: api/Ambiente
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -102,6 +151,10 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
 
             return CreatedAtAction("GetAmbiente", new { id = ambiente.IdAmbiente }, ambiente);
         }
+
+        /// <summary>
+        /// deleta um ambiente do banco de dados
+        /// </summary>
 
         // DELETE: api/Ambiente/5
         [HttpDelete("{id}")]

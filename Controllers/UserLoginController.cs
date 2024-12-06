@@ -7,6 +7,7 @@ using API_TEMPERATURA_MAXIMA.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DotNet.Scaffolding.Shared.Project;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 namespace API_TEMPERATURA_MAXIMA.Controllers;
 [Route("api/[controller]")]
@@ -28,6 +29,19 @@ public class UserLoginController : ControllerBase
         _configuration = configuration;
         _context = context;
     }
+
+    /// <summary>
+        /// cria um usuário 
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///  "email": "string",
+        ///  "password": "string",
+        ///  "cpf": 0
+        ///}
+        /// </remarks>
+        /// <response code="200">Sucesso no upload dos dados</response>
+    
     [HttpPost("Criar")]
     public async Task<ActionResult<UserToken>> CreateUser([FromBody]
 UserInfo model) 
@@ -63,6 +77,19 @@ UserInfo model)
         else
         { return BadRequest("Funcionario não cadastrado"); }
     }
+
+    /// <summary>
+        /// retorna os usuários logados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///  "email": "string",
+        ///  "password": "string",
+        ///  "cpf": 0
+        ///}
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
     [HttpGet("Check")]
     public async Task<ActionResult<String>> CheckUser(String Cpf, string
     Email)
@@ -77,26 +104,28 @@ UserInfo model)
         {
             if (FuncionarioCad != null)
             {
+
                 return "OK";
             }
             else
             { return BadRequest("Paciente não cadastrado"); }
         }
+        
     }
     [HttpPost("Login")]
     public async Task<ActionResult<UserToken>> Login([FromBody] UserInfo
     userInfo)
     {
-        var result = await
-        _signInManager.PasswordSignInAsync(userInfo.email, userInfo.password,
-        isPersistent: false, lockoutOnFailure: false);
+        var result = await _signInManager.PasswordSignInAsync(userInfo.email, userInfo.password,isPersistent: false, lockoutOnFailure: false);
         if (result.Succeeded)
         {
-            var user = await
-        _userManager.FindByNameAsync(userInfo.email);
+            var user = await _userManager.FindByNameAsync(userInfo.email);
+            var funcionario = await _context.Funcionarios.FirstOrDefaultAsync(f => f.email == userInfo.email);
+            userInfo.IdFuncionario = funcionario.IdFuncionario;
             var roles = await _userManager.GetRolesAsync(user);
             return BuildToken(userInfo, roles);
         }
+        
         else
         {
             ModelState.AddModelError(string.Empty, "login inválido.");

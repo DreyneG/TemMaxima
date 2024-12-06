@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "zB/y4XRhgcNVhdwvC7X++0rY40rem/6RYg4rFh8dWe5aESAxv05OhlYQScZG7PATrqBvato+vlOSV3W/sxYFtQ==",
+  "dgSpecHash": "PxEfE41GbV1ysxbOz7KBnb1BFcF+HNHIeLTD1HaIq9EiMw6Zv4EuSL2XAdmXBhufReVObrvfj53zs1geXoJ5AQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Aluno Dev\\Desktop\\API TEMPERATURA_MAXIMA\\API TEMPERATURA_MAXIMA.csproj",
+  "projectFilePath": "C:\\Users\\Aluno Dev\\Documents\\Dev\\TCC\\TemMaxima\\API TEMPERATURA_MAXIMA.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Aluno Dev\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\Aluno Dev\\.nuget\\packages\\azure.identity\\1.6.0\\azure.identity.1.6.0.nupkg.sha512",

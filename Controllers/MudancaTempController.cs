@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using API_TEMPERATURA_MAXIMA.Context;
-using API_TEMPERATURA_MAXIMA.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using API_TEMPERATURA_MAXIMA.Models;
+using API_TEMPERATURA_MAXIMA.Context;
 
 namespace API_TEMPERATURA_MAXIMA.Controllers
 {
@@ -22,136 +21,175 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
         {
             _context = context;
         }
-           private int GetIdFuncionario()
-        {
-            // Recupera o IdFuncionario das claims do usuário autenticado
-            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-        }
+
+        /// <summary>
+        /// retorna as mudanças temperaturas registrados no banco de dados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idMudancaTemp": 0,
+        ///    "temperatura_alterada": 0,
+        ///    "temperatura": 0,
+        ///    "nomeAmbiente": "string",
+        ///    "idAmbiente": 0,
+        ///    "nomeUsuario": "string",
+        ///    "idFuncionario": 0,
+        ///    "horarioAlteracao": "string",
+        ///    "dataAlteracao": "2024-10-10"
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
 
         // GET: api/MudancaTemp
         [HttpGet]
-        [Authorize("Master")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<MudancaTemp>>> GetMudancaTemps()
         {
-            if (_context.MudancaTemps == null)
+            var funcionarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(funcionarioIdClaim) || !int.TryParse(funcionarioIdClaim, out var IdFuncionario))
             {
-                return NotFound();
+                return Unauthorized("Funcionário ID não encontrado ou inválido no token.");
             }
-            var mudancas = await _context.MudancaTemps.Where(mt => VerificarAcesso(GetIdFuncionario(), mt.IdAmbiente)).ToListAsync();
-            return mudancas;
+
+            var funcionario = await _context.Funcionarios.FindAsync(IdFuncionario);
+
+            if (funcionario == null)
+            {
+                return NotFound("Funcionário não encontrado.");
+            }
+
+            // Obter os IDs dos ambientes que o funcionário tem acesso
+            var ambientesPermitidos = await _context.UsuarioAmbientes
+                .Where(ua => ua.IdFuncionario == IdFuncionario)
+                .Select(ua => ua.IdAmbiente)
+                .ToListAsync();
+
+            if (!ambientesPermitidos.Any())
+            {
+                return NotFound("Nenhum ambiente associado encontrado para o funcionário.");
+            }
+
+            // Buscar apenas as mudanças de temperatura nos ambientes permitidos
+            var mudancas = await _context.MudancaTemps
+                .Where(mt => ambientesPermitidos.Contains(mt.IdAmbiente))
+                .ToListAsync();
+
+            return Ok(mudancas);
         }
+
+        /// <summary>
+        /// retorna a mudança temperatura registrada no banco de dados em relação ao id
+        /// </summary>
+        /// <summary>
+        /// retorna as mudanças temperaturas registrados no banco de dados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idMudancaTemp": 0,
+        ///    "temperatura_alterada": 0,
+        ///    "temperatura": 0,
+        ///    "nomeAmbiente": "string",
+        ///    "idAmbiente": 0,
+        ///    "nomeUsuario": "string",
+        ///    "idFuncionario": 0,
+        ///    "horarioAlteracao": "string",
+        ///    "dataAlteracao": "2024-10-10"
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
 
         // GET: api/MudancaTemp/5
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<MudancaTemp>> GetMudancaTemp(int id)
         {
-            if (_context.MudancaTemps == null)
-            {
-                return NotFound();
-            }
-            var mudancaTemp = await _context.MudancaTemps.FindAsync(id);
+            var funcionarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (mudancaTemp == null || !VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
+            if (string.IsNullOrEmpty(funcionarioIdClaim) || !int.TryParse(funcionarioIdClaim, out var IdFuncionario))
             {
-                return Forbid();
+                return Unauthorized("Funcionário ID não encontrado ou inválido no token.");
             }
 
-            return mudancaTemp;
+            var funcionario = await _context.Funcionarios.FindAsync(IdFuncionario);
+
+            if (funcionario == null)
+            {
+                return NotFound("Funcionário não encontrado.");
+            }
+
+            var mudancaTemp = await _context.MudancaTemps .OrderByDescending(m => m.IdMudancaTemp).Where(t => t.IdAmbiente == id).FirstOrDefaultAsync();
+
+            if (mudancaTemp == null)
+            {
+                return NotFound("Mudança de temperatura não encontrada.");
+            }
+
+            if (!VerificarAcesso(funcionario.IdFuncionario, mudancaTemp.IdAmbiente))
+            {
+                return Forbid("Acesso negado ao ambiente.");
+            }
+
+            return Ok(mudancaTemp);
         }
 
-        // PUT: api/MudancaTemp/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        [Authorize]
-        public async Task<IActionResult> PutMudancaTemp(int id, MudancaTemp mudancaTemp)
-        {
-            
-            if (id != mudancaTemp.IdMudancaTemp)
-            {
-                return BadRequest();
-            }
-            if (!VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
-            {
-                return Forbid();
-            }
-
-            _context.Entry(mudancaTemp).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MudancaTempExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
+        /// <summary>
+        /// insere dados de mudança temperatura no banco de dados
+        /// </summary>
+        /// <summary>
+        /// retorna as mudanças temperaturas registrados no banco de dados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idMudancaTemp": 0,
+        ///    "temperatura_alterada": 0,
+        ///    "temperatura": 0,
+        ///    "nomeAmbiente": "string",
+        ///    "idAmbiente": 0,
+        ///    "nomeUsuario": "string",
+        ///    "idFuncionario": 0,
+        ///    "horarioAlteracao": "string",
+        ///    "dataAlteracao": "2024-10-10"
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no upload dos dados</response>
 
         // POST: api/MudancaTemp
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<MudancaTemp>> PostMudancaTemp(MudancaTemp mudancaTemp)
         {
-            if (_context.MudancaTemps == null)
+            var funcionarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(funcionarioIdClaim) || !int.TryParse(funcionarioIdClaim, out var IdFuncionario))
             {
-                return Problem("Entity set 'AppDbContext.MudancaTemps'  is null.");
+                return Unauthorized("Funcionário ID não encontrado ou inválido no token.");
             }
-            if (!VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
+
+            var funcionario = await _context.Funcionarios.FindAsync(IdFuncionario);
+
+            if (funcionario == null)
             {
-                return Forbid();
+                return NotFound("Funcionário não encontrado.");
             }
+
+            if (!VerificarAcesso(funcionario.IdFuncionario, mudancaTemp.IdAmbiente))
+            {
+                return Forbid("Acesso negado ao ambiente.");
+            }
+
+            mudancaTemp.HorarioMudanca = DateTime.Now;
+
             _context.MudancaTemps.Add(mudancaTemp);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetMudancaTemp", new { id = mudancaTemp.IdMudancaTemp }, mudancaTemp);
         }
 
-        // DELETE: api/MudancaTemp/5
-        [HttpDelete("{id}")]
-        [Authorize]
-        public async Task<IActionResult> DeleteMudancaTemp(int id)
-        {
-            if (_context.MudancaTemps == null)
-            {
-                return NotFound();
-            }
-
-            var mudancaTemp = await _context.MudancaTemps.FindAsync(id);
-            if (!VerificarAcesso(GetIdFuncionario(), mudancaTemp.IdAmbiente))
-            {
-                return Forbid();
-            }
-            if (mudancaTemp == null)
-            {
-                return NotFound();
-            }
-
-            _context.MudancaTemps.Remove(mudancaTemp);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool MudancaTempExists(int id)
-        {
-            return (_context.MudancaTemps?.Any(e => e.IdMudancaTemp == id)).GetValueOrDefault();
-        }
         private bool VerificarAcesso(int idFuncionario, int idAmbiente)
         {
-            // Verificar se o funcionário tem acesso ao ambiente utilizando o contexto central
-            return _context.UsuarioAmbientes.Any(fa => fa.IdFuncionario == idFuncionario && fa.IdAmbiente == idAmbiente);
+            return _context.UsuarioAmbientes
+                .Any(fa => fa.IdFuncionario == idFuncionario && fa.IdAmbiente == idAmbiente);
         }
-     
     }
 }

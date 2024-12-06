@@ -21,6 +21,18 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// retorna os usuários que estão associados a um ambiente
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idUsuarioAmbiente": 0,
+        ///    "idAmbiente": 0,
+        ///    "idFuncionario": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
         // GET: api/UsuarioAmbiente
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UsuarioAmbiente>>> GetUsuarioAmbientes()
@@ -32,15 +44,27 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             return await _context.UsuarioAmbientes.ToListAsync();
         }
 
+        /// <summary>
+        /// retorna os usuários que estão associados a um ambiente baseado no id
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idUsuarioAmbiente": 0,
+        ///    "idAmbiente": 0,
+        ///    "idFuncionario": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
         // GET: api/UsuarioAmbiente/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UsuarioAmbiente>> GetUsuarioAmbiente(int id)
+        public async Task<ActionResult<IEnumerable<UsuarioAmbiente>>> GetUsuarioAmbiente(int id)
         {
           if (_context.UsuarioAmbientes == null)
           {
               return NotFound();
           }
-            var usuarioAmbiente = await _context.UsuarioAmbientes.FindAsync(id);
+            var usuarioAmbiente = await _context.UsuarioAmbientes.Where(e => e.IdAmbiente == id).ToListAsync();
 
             if (usuarioAmbiente == null)
             {
@@ -49,6 +73,18 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
 
             return usuarioAmbiente;
         }
+
+        /// <summary>
+        /// atualiza os usuários que estão associados a um ambiente
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idUsuarioAmbiente": 0,
+        ///    "idAmbiente": 0,
+        ///    "idFuncionario": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no update dos dados</response>
 
         // PUT: api/UsuarioAmbiente/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -81,6 +117,18 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// insere usuários em um ambiente
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idUsuarioAmbiente": 0,
+        ///    "idAmbiente": 0,
+        ///    "idFuncionario": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no upload dos dados</response>
+
         // POST: api/UsuarioAmbiente
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -95,6 +143,10 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
 
             return CreatedAtAction("GetUsuarioAmbiente", new { id = usuarioAmbiente.IdUsuarioAmbiente }, usuarioAmbiente);
         }
+
+        /// <summary>
+        /// deleta os usuários que estão associados a um ambiente baseado no id
+        /// </summary>
 
         // DELETE: api/UsuarioAmbiente/5
         [HttpDelete("{id}")]

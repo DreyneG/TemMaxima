@@ -23,6 +23,22 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// retorna os funcionarios registrados no banco de dados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idFuncionario": 0,
+        ///    "nome_usuario": "string",
+        ///    "email": "string",
+        ///    "password": "string",
+        ///    "cpf": 0,
+        ///    "type_adm": true
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
+
         // GET: api/Funcionario
         [HttpGet]
         [Authorize]
@@ -34,6 +50,22 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
           }
             return await _context.Funcionarios.ToListAsync();
         }
+
+        /// <summary>
+        /// retorna o funcionario registrado no banco de dados em relação ao id
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idFuncionario": 0,
+        ///    "nome_usuario": "string",
+        ///    "email": "string",
+        ///    "password": "string",
+        ///    "cpf": 0,
+        ///    "type_adm": true
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
 
         // GET: api/Funcionario/5
         [HttpGet("{id}")]
@@ -53,6 +85,21 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
 
             return funcionario;
         }
+
+        /// <summary>
+        /// faz um update dos dados de um funcionário em relação ao id
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idFuncionario": 0,
+        ///    "nome_usuario": "string",
+        ///    "email": "string",
+        ///    "password": "string",
+        ///    "cpf": 0,
+        ///    "type_adm": true
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no update dos dados</response>
 
         // PUT: api/Funcionario/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -86,10 +133,25 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// insere um funcionário no banco de dados
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idFuncionario": 0,
+        ///    "nome_usuario": "string",
+        ///    "email": "string",
+        ///    "password": "string",
+        ///    "cpf": 0,
+        ///    "type_adm": true
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no upload dos dados</response>
+
         // POST: api/Funcionario
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-          [Authorize("Admin")]
+        //   [Authorize("Admin")]
         public async Task<ActionResult<Funcionario>> PostFuncionario(Funcionario funcionario)
         {
           if (_context.Funcionarios == null)
@@ -101,6 +163,10 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
 
             return CreatedAtAction("GetFuncionario", new { id = funcionario.IdFuncionario }, funcionario);
         }
+
+        /// <summary>
+        /// deleta um funcionário do banco de dados em relação ao id
+        /// </summary>
 
         // DELETE: api/Funcionario/5
         [HttpDelete("{id}")]

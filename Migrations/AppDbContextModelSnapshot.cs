@@ -107,16 +107,19 @@ namespace APITEMPERATURAMAXIMA.Migrations
 
             modelBuilder.Entity("API_TEMPERATURA_MAXIMA.Models.Estado_ar", b =>
                 {
-                    b.Property<int>("IdEstado")
+                    b.Property<int>("IdEstado_ar")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEstado"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEstado_ar"));
+
+                    b.Property<int>("IdAmbiente")
+                        .HasColumnType("integer");
 
                     b.Property<int>("estado")
                         .HasColumnType("integer");
 
-                    b.HasKey("IdEstado");
+                    b.HasKey("IdEstado_ar");
 
                     b.ToTable("Estado_ar");
                 });
@@ -157,23 +160,14 @@ namespace APITEMPERATURAMAXIMA.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdMudancaTemp"));
 
-                    b.Property<DateOnly>("DataAlteracao")
-                        .HasColumnType("date");
-
-                    b.Property<TimeOnly>("HorarioAlteracao")
-                        .HasColumnType("time without time zone");
+                    b.Property<DateTime?>("HorarioMudanca")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("IdAmbiente")
                         .HasColumnType("integer");
 
                     b.Property<int>("IdFuncionario")
                         .HasColumnType("integer");
-
-                    b.Property<string>("NomeAmbiente")
-                        .HasColumnType("text");
-
-                    b.Property<string>("NomeUsuario")
-                        .HasColumnType("text");
 
                     b.Property<float>("temperatura")
                         .HasColumnType("real");
@@ -194,7 +188,10 @@ namespace APITEMPERATURAMAXIMA.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTemperatura"));
 
-                    b.Property<int>("id_ambiente")
+                    b.Property<DateTime?>("HorarioTemp")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("IdAmbiente")
                         .HasColumnType("integer");
 
                     b.Property<float>("temperatura")
@@ -203,6 +200,25 @@ namespace APITEMPERATURAMAXIMA.Migrations
                     b.HasKey("IdTemperatura");
 
                     b.ToTable("Temperaturas");
+                });
+
+            modelBuilder.Entity("API_TEMPERATURA_MAXIMA.Models.UsuarioAmbiente", b =>
+                {
+                    b.Property<int>("IdUsuarioAmbiente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdUsuarioAmbiente"));
+
+                    b.Property<int>("IdAmbiente")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdFuncionario")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IdUsuarioAmbiente");
+
+                    b.ToTable("UsuarioAmbientes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

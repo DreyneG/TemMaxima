@@ -25,6 +25,18 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// retorna os dados sobre os Estados do ar
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idEstado_ar": 0,
+        ///    "estado": 0,
+        ///    "idAmbiente": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
         // GET: api/Estado_ar
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Estado_ar>>> GetEstado_ar()
@@ -39,68 +51,55 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
 
         }
 
+        /// <summary>
+        /// retorna os dados sobre os Estados do ar baseado no id
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idEstado_ar": 0,
+        ///    "estado": 0,
+        ///    "idAmbiente": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no retorno dos dados</response>
+
 
         // GET: api/Estado_ar/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Estado_ar>>> GetEstado_ar(int id, [FromQuery] Estado_ar estado_Ar)
+        public async Task<ActionResult<Estado_ar>> GetEstado_ar(int id)
         {
-
             int i = 0;
-            int a = 0;
+            int a = id;
 
-            string query = "SELECT temperatura FROM \"Temperaturas\" ORDER BY \"IdTemperatura\" DESC LIMIT 1";
-            string query3 = "SELECT IdAmbiente FROM \"Temperaturas\" ORDER BY \"IdTemperatura\" DESC LIMIT 1";
-            string query2 = "SELECT temperatura_alterada FROM \"MudancaTemps\" ORDER BY \"IdMudancaTemp\" DESC LIMIT 1";
-            string conexao = "Server=localhost;Port=5432;Database=TemperaturaMaxima;User Id=postgres;Password=senai901;SearchPath=public;";
+            var temp_Atual = await _context.Temperaturas.Where(t => t.IdAmbiente == id).OrderByDescending(t => t.IdTemperatura).Select(t => t.temperatura).FirstOrDefaultAsync();
 
-            float temp_Atual = 0;
-            int temp_alterada = 0;
+            // Obter o último IdAmbiente da tabela Temperaturas
+            var ambienteId = await _context.Temperaturas
+                                           .OrderByDescending(t => t.IdTemperatura)
+                                           .Select(t => t.IdAmbiente).FirstOrDefaultAsync();
 
-
-            using (var connection = new NpgsqlConnection(conexao))
-            {
-                connection.Open();
-
-                // Executando ambas as consultas na mesma conexão
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    var result = command.ExecuteScalar();
-                    if (result != null && result != DBNull.Value)
-                    {
-                        temp_Atual = Convert.ToSingle(result);
-                    }
-                }
-
-                using (var command = new NpgsqlCommand(query2, connection))
-                {
-                    var result = command.ExecuteScalar();
-                    if (result != null && result != DBNull.Value)
-                    {
-                        temp_alterada = Convert.ToInt32(result);
-                    }
-                }
-                using (var command = new NpgsqlCommand(query3, connection))
-                {
-                    var result = command.ExecuteScalar();
-                    if (result != null && result != DBNull.Value)
-                    {
-                        a = Convert.ToInt32(result);
-                    }
-                }
-            }
+            // Obter a última temperatura alterada da tabela MudancaTemps
+            var temp_alterada = await _context.MudancaTemps.Where(t => t.IdAmbiente == id)
+                                              .OrderByDescending(m => m.IdMudancaTemp)
+                                              .Select(m => m.temperatura_alterada)
+                                              .FirstOrDefaultAsync();
 
             // Ajustando a lógica da comparação de temperaturas para clareza
-            if (temp_Atual >= temp_alterada + 1)
+            if (temp_Atual <= temp_alterada + 1)
             {
-                i = 0; // Ar-condicionado está desligado
+
+                i = 0;
+                // return BadRequest(); // Ar-condicionado está desligado
             }
             else if (temp_Atual == temp_alterada)
             {
                 i = 1;
+                // return BadRequest();
             }
-            else if (temp_Atual <= temp_alterada - 1)
+            else if (temp_Atual >= temp_alterada - 1)
             {
-                i = 1; // Ar-condicionado está ligado
+                i = 1;
+                // return BadRequest(); // Ar-condicionado está ligado
             }
 
 
@@ -117,20 +116,31 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             await PostEstado_ar(estado);
 
 
-
             if (_context.Estado_ar == null)
             {
                 return NotFound();
             }
-            var estado_ar = await _context.Estado_ar.Where(e => e.IdAmbiente == id).ToListAsync();
+            var estado_ar = await _context.Estado_ar.OrderDescending().Where(e => e.IdAmbiente == id).FirstOrDefaultAsync();
 
-            if (estado_ar == null || estado_ar.Count == 0)
+            if (estado_ar == null)
             {
                 return NotFound();
             }
 
             return estado_ar;
         }
+
+        /// <summary>
+        /// atualiza os dados sobre os Estados do ar
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idEstado_ar": 0,
+        ///    "estado": 0,
+        ///    "idAmbiente": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no update dos dados</response>
 
         // PUT: api/Estado_ar/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -163,6 +173,18 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// insere dados sobre os Estados do ar
+        /// </summary>
+        /// <remarks>
+        /// {
+        ///    "idEstado_ar": 0,
+        ///    "estado": 0,
+        ///    "idAmbiente": 0
+        ///  }
+        /// </remarks>
+        /// <response code="200">Sucesso no upload dos dados</response>
+
         // POST: api/Estado_ar
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -179,6 +201,10 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
             return CreatedAtAction("GetEstado_ar", new { id = estado_ar.IdEstado_ar }, estado_ar);
             // return BadRequest(e);
         }
+
+        /// <summary>
+        /// deleta dados sobre os Estados do ar baseado no id
+        /// </summary>
 
         // DELETE: api/Estado_ar/5
         [HttpDelete("{id}")]
@@ -204,6 +230,6 @@ namespace API_TEMPERATURA_MAXIMA.Controllers
         {
             return (_context.Estado_ar?.Any(e => e.IdEstado_ar == id)).GetValueOrDefault();
         }
-       
+
     }
 }
